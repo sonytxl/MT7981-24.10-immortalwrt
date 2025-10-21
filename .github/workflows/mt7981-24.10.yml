@@ -50,6 +50,37 @@ jobs:
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
         
+      - name: Free up disk space on Runner
+        run: |
+          echo "==> Initial disk space:"
+          df -hT
+          
+          echo "==> Removing large pre-installed tools..."
+          # 移除 .NET Core SDKs
+          sudo rm -rf /usr/share/dotnet
+          # 移除 Haskell (GHC)
+          sudo rm -rf /opt/ghc
+          # 移除 Android SDKs 和 NDK
+          sudo rm -rf /usr/local/lib/android
+          # 移除 CodeQL (代码分析工具)
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          # 移除 Swift
+          sudo rm -rf /usr/share/swift
+          # 移除大型的 C++ 库 Boost
+          sudo rm -rf "/usr/local/share/boost"
+          # 移除 Actions Runner 的工具缓存
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          
+          echo "==> Cleaning up APT cache..."
+          # 清理 apt 缓存
+          sudo apt-get clean
+          
+          echo "==> Pruning Docker images..."
+          # 删除预装的 Docker 镜像
+          sudo docker image prune --all --force
+          
+          echo "==> Final disk space:"
+          df -hT
        
     - name: Clone source code 下载源码
       working-directory: /workdir
